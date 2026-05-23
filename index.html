@@ -408,11 +408,7 @@ function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
-function checkOrientation(){
-  if(!inGame)return;
-  if(window.innerWidth<=window.innerHeight)showScreen('rotate-warning');
-  else showScreen('game');
-}
+function checkOrientation(){}
 window.addEventListener('resize',checkOrientation);
 
 function startGame(){
