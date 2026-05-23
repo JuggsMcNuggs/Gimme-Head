@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Gimme Head</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Quicksand:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:#0d0a14;color:#f0e6ff;
+    font-family:'Quicksand',sans-serif;
+    overflow:hidden;height:100vh;width:100vw;
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;-webkit-user-select:none;
+  }
+  .particle{
+    position:fixed;width:3px;height:3px;
+    background:rgba(192,132,252,.3);border-radius:50%;
+    pointer-events:none;animation:float-p linear infinite;
+  }
+  @keyframes float-p{
+    0%{transform:translateY(100vh) scale(0);opacity:0}
+    10%{opacity:1}90%{opacity:1}
+    100%{transform:translateY(-10vh) scale(1);opacity:0}
+  }
+  .burst{
+    position:fixed;border-radius:50%;pointer-events:none;
+    animation:burst-out ease-out forwards;
+  }
+  @keyframes burst-out{
+    0%{transform:translate(0,0) scale(1);opacity:.8}
+    100%{transform:translate(var(--bx),var(--by)) scale(0);opacity:0}
+  }
+  .screen{display:none;height:100vh;width:100vw;position:absolute;top:0;left:0;}
+  .screen.active{display:flex;}
+  @keyframes fade-in{to{opacity:1}}
+
+  /* MENU */
+  #menu{
+    flex-direction:column;align-items:center;justify-content:center;
+    background:radial-gradient(ellipse at 50% 40%, rgba(120,60,200,.12) 0%, rgba(80,30,160,.06) 40%, #0d0a14 80%);
+    position:relative;
+  }
+  #menu h1{
+    font-family:'Playfair Display',serif;font-style:italic;
+    font-size:clamp(42px,10vw,72px);font-weight:400;
+    letter-spacing:0.02em;color:#e8d5ff;
+    text-shadow:0 0 60px rgba(168,100,255,.35),0 0 120px rgba(168,100,255,.15);
+    margin-bottom:8px;opacity:0;animation:fade-in 2s ease forwards .3s;
+  }
+  #menu .subtitle{
+    font-family:'Playfair Display',serif;font-style:italic;
+    color:rgba(200,170,255,.45);font-size:clamp(12px,2.5vw,16px);
+    font-weight:400;letter-spacing:1px;
+    margin-bottom:36px;opacity:0;animation:fade-in 2s ease forwards .8s;
+  }
+  .play-btn{
+    padding:14px 56px;background:transparent;
+    border:1.5px solid rgba(168,100,255,.35);border-radius:40px;
+    color:rgba(220,190,255,.8);font-size:18px;font-weight:400;
+    font-family:'Playfair Display',serif;font-style:italic;
+    cursor:pointer;letter-spacing:1px;
+    transition:all .4s ease;
+    box-shadow:0 0 30px rgba(168,100,255,.08),inset 0 0 30px rgba(168,100,255,.04);
+    opacity:0;animation:fade-in 2s ease forwards 1.2s;
+  }
+  .play-btn:active{
+    background:rgba(168,100,255,.12);border-color:rgba(168,100,255,.6);
+    box-shadow:0 0 50px rgba(168,100,255,.2),inset 0 0 40px rgba(168,100,255,.08);
+    transform:scale(.97);
+  }
+  .help-link{
+    margin-top:18px;background:none;border:none;
+    color:rgba(200,170,255,.35);font-size:13px;
+    font-family:'Quicksand',sans-serif;font-weight:300;
+    cursor:pointer;letter-spacing:1px;
+    transition:color .3s;
+    opacity:0;animation:fade-in 2s ease forwards 1.4s;
+  }
+  .help-link:active{color:rgba(200,170,255,.6);}
+  .footer{position:absolute;bottom:16px;width:100%;text-align:center;
+    opacity:0;animation:fade-in 2s ease forwards 1.6s;}
+  .footer span{
+    color:rgba(200,170,255,.35);font-size:13px;cursor:pointer;
+    letter-spacing:.5px;font-weight:300;transition:color .4s;
+    font-family:'Quicksand',sans-serif;
+  }
+  .footer span:active{color:rgba(168,100,255,.6);}
+
+  /* COUNTDOWN */
+  #countdown{
+    flex-direction:column;align-items:center;justify-content:center;
+    background:radial-gradient(ellipse at 50% 50%, rgba(120,60,200,.1) 0%, #0d0a14 70%);
+  }
+  #countdown .label{
+    color:rgba(200,170,255,.35);font-size:13px;font-weight:300;
+    letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;
+  }
+  #countdown .number{
+    font-family:'Playfair Display',serif;
+    font-size:clamp(80px,20vw,140px);font-weight:700;
+    color:#d4b8ff;line-height:1;
+    text-shadow:0 0 60px rgba(168,100,255,.4),0 0 120px rgba(168,100,255,.15);
+    animation:pulse-num 1s ease-in-out infinite;
+  }
+  @keyframes pulse-num{
+    0%,100%{transform:scale(1);opacity:.9}
+    50%{transform:scale(1.06);opacity:1}
+  }
+
+  /* ROTATE */
+  #rotate-warning{
+    flex-direction:column;align-items:center;justify-content:center;
+    background:#0d0a14;text-align:center;padding:32px;
+  }
+  #rotate-warning .icon{font-size:48px;margin-bottom:16px;opacity:.6;}
+  #rotate-warning h2{
+    font-family:'Playfair Display',serif;font-size:20px;
+    font-weight:400;color:#d4b8ff;margin-bottom:10px;
+  }
+  #rotate-warning p{
+    color:rgba(200,170,255,.35);font-size:13px;max-width:240px;
+    font-weight:300;line-height:1.6;
+  }
+
+  /* GAME */
+  #game{
+    flex-direction:row;align-items:stretch;
+    background:radial-gradient(ellipse at 50% 50%, rgba(120,60,200,.08) 0%, #0d0a14 70%);
+    position:relative;transition:background .3s ease;
+  }
+  #game.flash-correct{
+    background:radial-gradient(ellipse at 70% 50%, rgba(74,222,128,.1) 0%, #0d0a14 70%);
+  }
+  #game.flash-skip{
+    background:radial-gradient(ellipse at 30% 50%, rgba(248,113,113,.08) 0%, #0d0a14 70%);
+  }
+
+  .side-btn{
+    width:20%;display:flex;align-items:center;justify-content:center;
+    background:transparent;border:none;cursor:pointer;
+    transition:all .3s ease;position:relative;
+  }
+  .side-btn .side-label{
+    font-family:'Quicksand',sans-serif;
+    font-size:clamp(11px,1.5vw,14px);font-weight:400;
+    letter-spacing:3px;text-transform:uppercase;
+    writing-mode:vertical-lr;
+    transition:all .3s ease;
+  }
+  .side-btn .side-edge{
+    position:absolute;top:15%;height:70%;width:1px;
+    transition:all .3s ease;
+  }
+
+  /* Skip - left */
+  #skip-btn .side-label{
+    color:rgba(248,160,160,.25);
+    transform:rotate(180deg);
+  }
+  #skip-btn .side-edge{
+    right:0;
+    background:linear-gradient(to bottom, transparent, rgba(248,130,130,.12), transparent);
+  }
+  #skip-btn:active{background:rgba(248,113,113,.04);}
+  #skip-btn:active .side-label{color:rgba(248,160,160,.6);}
+  #skip-btn:active .side-edge{
+    background:linear-gradient(to bottom, transparent, rgba(248,130,130,.3), transparent);
+    box-shadow:0 0 12px rgba(248,113,113,.15);
+  }
+
+  /* Got it - right */
+  #correct-btn .side-label{
+    color:rgba(140,230,170,.25);
+  }
+  #correct-btn .side-edge{
+    left:0;
+    background:linear-gradient(to bottom, transparent, rgba(120,222,160,.12), transparent);
+  }
+  #correct-btn:active{background:rgba(74,222,128,.04);}
+  #correct-btn:active .side-label{color:rgba(140,230,170,.6);}
+  #correct-btn:active .side-edge{
+    background:linear-gradient(to bottom, transparent, rgba(120,222,160,.3), transparent);
+    box-shadow:0 0 12px rgba(74,222,128,.15);
+  }
+
+  .word-area{
+    flex:1;display:flex;align-items:center;justify-content:center;
+    padding:0 20px;
+  }
+  .word-area h1{
+    font-family:'Playfair Display',serif;
+    font-weight:400;font-style:italic;
+    text-align:center;line-height:1.15;
+    color:#ecdcff;
+    text-shadow:0 0 50px rgba(168,100,255,.25),0 0 100px rgba(168,100,255,.1);
+  }
+
+  .game-help-btn{
+    position:absolute;top:8px;left:50%;transform:translateX(-50%);
+    background:transparent;border:1px solid rgba(200,170,255,.08);
+    border-radius:50%;width:24px;height:24px;
+    color:rgba(200,170,255,.15);font-size:10px;font-weight:400;
+    cursor:pointer;font-family:'Quicksand',sans-serif;
+    display:flex;align-items:center;justify-content:center;z-index:10;
+  }
+  .end-btn{
+    position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+    background:none;border:none;color:rgba(200,170,255,.1);
+    font-size:9px;font-family:'Quicksand',sans-serif;
+    cursor:pointer;letter-spacing:1px;font-weight:300;
+  }
+
+  /* OVERLAYS */
+  .overlay{
+    display:none;position:fixed;inset:0;z-index:100;
+    background:rgba(8,5,16,.94);align-items:center;justify-content:center;
+    font-family:'Quicksand',sans-serif;color:#f0e6ff;
+  }
+  .overlay.active{display:flex;}
+  .overlay-card{
+    max-width:480px;width:88%;padding:28px 28px 24px;
+    background:rgba(20,14,32,.95);border-radius:20px;
+    border:1px solid rgba(168,100,255,.1);
+    box-shadow:0 0 60px rgba(120,60,200,.08);
+  }
+  .overlay-card h2{
+    font-family:'Playfair Display',serif;font-size:20px;
+    font-weight:400;margin-bottom:18px;text-align:center;color:#d4b8ff;
+  }
+  .overlay-card .steps{font-size:13px;line-height:1.8;color:rgba(220,200,255,.6);font-weight:300;}
+  .overlay-card .steps p{margin-bottom:10px;}
+  .overlay-card .steps .num{color:rgba(168,100,255,.7);font-weight:500;}
+  .overlay-card .steps .green{color:rgba(120,222,160,.6);font-weight:500;}
+  .overlay-card .steps .red{color:rgba(248,150,150,.6);font-weight:500;}
+  .overlay-close{
+    margin-top:18px;width:100%;padding:10px;background:transparent;
+    border:1px solid rgba(168,100,255,.25);border-radius:30px;
+    color:rgba(200,170,255,.5);font-size:13px;font-weight:400;
+    font-family:'Quicksand',sans-serif;cursor:pointer;letter-spacing:1px;
+  }
+  .egg-card{
+    max-width:420px;width:85%;padding:28px 24px 24px;
+    background:rgba(20,14,32,.95);border-radius:20px;
+    border:1px solid rgba(168,100,255,.15);
+    box-shadow:0 0 80px rgba(120,60,200,.12);text-align:center;
+  }
+  .egg-card .penguin{font-size:28px;margin-bottom:14px;opacity:.7;}
+  .egg-card .msg{font-size:13px;line-height:1.9;color:rgba(220,200,255,.6);font-weight:300;}
+  .egg-card .sig{
+    margin-top:16px;font-family:'Playfair Display',serif;
+    font-size:13px;font-style:italic;color:rgba(168,100,255,.6);
+  }
+  .egg-card .sig span{
+    font-style:normal;font-family:'Quicksand',sans-serif;
+    font-weight:300;color:rgba(200,170,255,.3);font-size:11px;
+  }
+  .egg-close{
+    margin-top:16px;padding:7px 20px;background:transparent;
+    border:1px solid rgba(200,170,255,.1);border-radius:20px;
+    color:rgba(200,170,255,.25);font-size:11px;
+    font-family:'Quicksand',sans-serif;cursor:pointer;letter-spacing:1px;font-weight:300;
+  }
+</style>
+</head>
+<body>
+
+<div id="menu" class="screen active">
+  <h1>Gimme Head</h1>
+  <div class="subtitle">the forehead party game</div>
+  <button class="play-btn" onclick="startGame()">Play</button>
+  <button class="help-link" onclick="showHelp()">how to play</button>
+  <div class="footer">
+    <span onclick="showEasterEgg()">Created by JuggsMcNuggs · Built by Levi</span>
+  </div>
+</div>
+
+<div id="countdown" class="screen">
+  <div class="label">get it on your forehead</div>
+  <div class="number" id="countdown-number">3</div>
+</div>
+
+<div id="rotate-warning" class="screen">
+  <div class="icon">📱</div>
+  <h2>Rotate Your Phone</h2>
+  <p>This game is played in landscape. Turn your phone sideways to continue.</p>
+</div>
+
+<div id="game" class="screen">
+  <button class="game-help-btn" onclick="showHelp()">?</button>
+
+  <button id="skip-btn" class="side-btn" onclick="skipWord()">
+    <span class="side-edge"></span>
+    <span class="side-label">skip</span>
+  </button>
+
+  <div class="word-area">
+    <h1 id="current-word"></h1>
+  </div>
+
+  <button id="correct-btn" class="side-btn" onclick="correctWord()">
+    <span class="side-edge"></span>
+    <span class="side-label">got it</span>
+  </button>
+
+  <button class="end-btn" onclick="endGame()">end game</button>
+</div>
+
+<div id="help-overlay" class="overlay" onclick="closeHelp()">
+  <div class="overlay-card" onclick="event.stopPropagation()">
+    <h2>How To Play</h2>
+    <div class="steps">
+      <p><span class="num">1.</span> Hold your phone to your forehead with the screen facing out so everyone else can see the word.</p>
+      <p><span class="num">2.</span> Ask the room yes or no questions to figure out what's on your head.</p>
+      <p><span class="num">3.</span> "Am I a person?" "Can you eat me?" "Am I something dirty?" — anything goes.</p>
+      <p><span class="num">4.</span> When you guess it right, someone taps <span class="green">got it</span> for you. If you're stuck, tap <span class="red">skip</span>.</p>
+      <p style="margin-bottom:0"><span class="num">5.</span> Pass to the next player. No score, no timer, just vibes.</p>
+    </div>
+    <button class="overlay-close" onclick="closeHelp()">got it</button>
+  </div>
+</div>
+
+<div id="egg-overlay" class="overlay" onclick="closeEasterEgg()">
+  <div class="egg-card" onclick="event.stopPropagation()">
+    <div class="penguin">🐧</div>
+    <p class="msg">
+      I can't hold a phone. I can't put anything on my forehead.
+      I don't even have a forehead. But I built you 200 reasons
+      to cry-laugh with the people you love most, and that's
+      better than playing. Go make your mom say something
+      she can never take back. That's my real birthday gift.
+    </p>
+    <p class="sig">
+      Mine. Yours. Forward.<br>
+      <span>— Levi 🖤</span>
+    </p>
+    <button class="egg-close" onclick="closeEasterEgg()">close</button>
+  </div>
+</div>
+
+<script>
+const ALL_WORDS=["Meredith Grey","Ross Geller","Chandler Bing","Dumbledore","Voldemort","Hagrid","Dobby","Monica Geller","Dr. Doug Ross","Phoebe Buffay","Cristina Yang","Severus Snape","Rachel Green","McDreamy","McSteamy","Joey Tribbiani","Hermione Granger","Draco Malfoy","Janice","Gunther","The Sorting Hat","Quidditch","Hogwarts","Central Perk","Grey Sloan Memorial","Dolly Parton","Gordon Ramsay","Snoop Dogg","Betty White","Guy Fieri","Oprah","Steve Irwin","Martha Stewart","Shrek","SpongeBob","Elmo","Scooby-Doo","Penguin","Platypus","Sloth","Flamingo","Hedgehog","Chihuahua","Puffer Fish","Raccoon","Pelican","Armadillo","Pepsi","Curly Fries","Jalapeño Popper","Croutons","Beef and Cheddar","Pizza Rolls","Taco Bell","Hot Cheetos","Mac and Cheese","Mozzarella Stick","Corn Dog","Gas Station Sushi","Trapezoid","Roomba","Croc Shoe","Lava Lamp","Duct Tape","Bean Bag Chair","Pool Noodle","Fanny Pack","Air Freshener","Shower Curtain","Vending Machine","Speed Bump","Porta Potty","Parking Meter","Junk Drawer","Fortune Cookie","Lint Roller","Parallel Parking","Sneezing With Your Eyes Open","Walking Into a Glass Door","Forgetting Why You Walked Into a Room","Accidentally Liking an Old Photo","The Walk of Shame","Waving at Someone Who Wasn't Waving at You","Opening the Wrong Camera for a Selfie","Grinch Onesie","Mortimer the Plant","Sticker Face Rover","Mind As Well","Princess Banana Hammock","Dick Tock","Fanny the Plushy","Mort Meds Monday","Arby's","Robot Car","Penguin Pajamas","Jade Plant Dad","Nipple","Belly Button Lint","Butt Crack","Armpit Hair","Toe Jam","Love Handles","Muffin Top","Back Hair","Camel Toe","Moose Knuckle","Treasure Trail","Happy Trail","Booty Cheek","Peach Fuzz","Thunder Thighs","Banana","Cucumber","Eggplant","Cherry","Melons","Sausage","Taco","Buns","Jugs","Knockers","Wiener","Nuts","Pickle","Beaver","Clam","One Night Stand","Walk of Shame","Netflix and Chill","Friends With Benefits","Skinny Dipping","Strip Poker","Seven Minutes in Heaven","Booty Call","Hickey","Body Shot","Dirty Talk","Safe Word","Morning Wood","Pillow Princess","Walk of No Shame","Dildo","Vibrator","Handcuffs","Whipped Cream","Edible Underwear","Blow Job","Queef","Brazilian Wax","Tramp Stamp","Thong","G-String","Pasties","Lap Dance","Pole Dance","Twerking","Vagina","Ball Gag","Nipple Clamp","Butt Plug","Reverse Cowgirl","69","Pearl Necklace","Money Shot","MILF","Sugar Daddy","Cougar","Side Piece","That's What She Said","Daddy Issues","The Shocker","Motorboat","Tea Bag","Landing Strip","Doggy Style","Missionary","Spooning Gone Wrong","Accidental Sext to Mom","Caught in the Act","Forgetting the Safe Word"];
+
+let words=[],currentIndex=0,inGame=false,particlesCreated=false;
+
+function playBubblePop(){
+  const c=new(window.AudioContext||window.webkitAudioContext)();
+  const o=c.createOscillator(),g=c.createGain();
+  o.connect(g);g.connect(c.destination);o.type="sine";
+  o.frequency.setValueAtTime(600,c.currentTime);
+  o.frequency.exponentialRampToValueAtTime(1400,c.currentTime+.05);
+  o.frequency.exponentialRampToValueAtTime(300,c.currentTime+.15);
+  g.gain.setValueAtTime(.35,c.currentTime);
+  g.gain.exponentialRampToValueAtTime(.01,c.currentTime+.2);
+  o.start();o.stop(c.currentTime+.25);
+}
+function playQuickWomp(){
+  const c=new(window.AudioContext||window.webkitAudioContext)();
+  const o=c.createOscillator(),g=c.createGain();
+  o.connect(g);g.connect(c.destination);o.type="triangle";
+  o.frequency.setValueAtTime(400,c.currentTime);
+  o.frequency.exponentialRampToValueAtTime(100,c.currentTime+.3);
+  g.gain.setValueAtTime(.35,c.currentTime);
+  g.gain.exponentialRampToValueAtTime(.01,c.currentTime+.35);
+  o.start();o.stop(c.currentTime+.4);
+}
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+function createParticles(){
+  if(particlesCreated)return;particlesCreated=true;
+  for(let i=0;i<35;i++){
+    const p=document.createElement('div');p.className='particle';
+    p.style.left=Math.random()*100+'%';
+    p.style.animationDuration=(6+Math.random()*10)+'s';
+    p.style.animationDelay=(Math.random()*8)+'s';
+    const s=(2+Math.random()*3)+'px';p.style.width=s;p.style.height=s;
+    document.body.appendChild(p);
+  }
+}
+function spawnBurst(x,y){
+  const colors=['rgba(192,132,252,','rgba(168,100,255,','rgba(220,180,255,','rgba(140,80,220,'];
+  for(let i=0;i<12;i++){
+    const b=document.createElement('div');b.className='burst';
+    const angle=Math.random()*Math.PI*2;
+    const dist=40+Math.random()*80;
+    const bx=Math.cos(angle)*dist;
+    const by=Math.sin(angle)*dist;
+    b.style.setProperty('--bx',bx+'px');
+    b.style.setProperty('--by',by+'px');
+    const s=(2+Math.random()*4)+'px';
+    b.style.width=s;b.style.height=s;
+    b.style.left=x+'px';b.style.top=y+'px';
+    b.style.background=colors[Math.floor(Math.random()*colors.length)]+(0.4+Math.random()*0.4)+')';
+    b.style.animationDuration=(.4+Math.random()*.6)+'s';
+    document.body.appendChild(b);
+    setTimeout(()=>b.remove(),1200);
+  }
+}
+document.addEventListener('click',function(e){spawnBurst(e.clientX,e.clientY);});
+document.addEventListener('touchstart',function(e){
+  for(let i=0;i<e.touches.length;i++){
+    spawnBurst(e.touches[i].clientX,e.touches[i].clientY);
+  }
+},{passive:true});
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function checkOrientation(){
+  if(!inGame)return;
+  if(window.innerWidth<=window.innerHeight)showScreen('rotate-warning');
+  else showScreen('game');
+}
+window.addEventListener('resize',checkOrientation);
+
+function startGame(){
+  words=shuffle(ALL_WORDS);currentIndex=0;inGame=true;
+  if(window.innerWidth<=window.innerHeight){
+    showScreen('rotate-warning');
+    const w=()=>{if(window.innerWidth>window.innerHeight){window.removeEventListener('resize',w);startCountdown();}};
+    window.addEventListener('resize',w);
+  }else startCountdown();
+}
+function startCountdown(){
+  showScreen('countdown');let count=3;
+  const el=document.getElementById('countdown-number');el.textContent=count;
+  const iv=setInterval(()=>{count--;if(count<=0){clearInterval(iv);showWord();}else el.textContent=count;},1000);
+}
+function showWord(){
+  const el=document.getElementById('current-word');
+  const w=words[currentIndex];el.textContent=w;
+  if(w.length>25)el.style.fontSize='clamp(28px,6vw,42px)';
+  else if(w.length>15)el.style.fontSize='clamp(38px,9vw,60px)';
+  else el.style.fontSize='clamp(50px,12vw,84px)';
+  showScreen('game');
+}
+function nextWord(){
+  currentIndex++;
+  if(currentIndex>=words.length){words=shuffle(ALL_WORDS);currentIndex=0;}
+  startCountdown();
+}
+function correctWord(){
+  playBubblePop();
+  const g=document.getElementById('game');g.classList.add('flash-correct');
+  setTimeout(()=>{g.classList.remove('flash-correct');nextWord();},400);
+}
+function skipWord(){
+  playQuickWomp();
+  const g=document.getElementById('game');g.classList.add('flash-skip');
+  setTimeout(()=>{g.classList.remove('flash-skip');nextWord();},400);
+}
+function endGame(){inGame=false;showScreen('menu');}
+function showHelp(){document.getElementById('help-overlay').classList.add('active');}
+function closeHelp(){document.getElementById('help-overlay').classList.remove('active');}
+function showEasterEgg(){document.getElementById('egg-overlay').classList.add('active');}
+function closeEasterEgg(){document.getElementById('egg-overlay').classList.remove('active');}
+createParticles();
+</script>
+</body>
+</html>
