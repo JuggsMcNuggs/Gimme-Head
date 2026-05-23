@@ -284,7 +284,8 @@
 <div id="rotate-warning" class="screen">
   <div class="icon">📱</div>
   <h2>Rotate Your Phone</h2>
-  <p>This game is played in landscape. Turn your phone sideways to continue.</p>
+  <p>This game is played in landscape. Turn your phone sideways, then tap the button below.</p>
+  <button class="play-btn" style="margin-top:24px;opacity:1;animation:none;font-size:15px;padding:12px 40px;" onclick="startCountdown()">I'm ready</button>
 </div>
 
 <div id="game" class="screen">
@@ -415,11 +416,7 @@ window.addEventListener('resize',checkOrientation);
 
 function startGame(){
   words=shuffle(ALL_WORDS);currentIndex=0;inGame=true;
-  if(window.innerWidth<=window.innerHeight){
-    showScreen('rotate-warning');
-    const w=()=>{if(window.innerWidth>window.innerHeight){window.removeEventListener('resize',w);startCountdown();}};
-    window.addEventListener('resize',w);
-  }else startCountdown();
+  showScreen('rotate-warning');
 }
 function startCountdown(){
   showScreen('countdown');let count=3;
